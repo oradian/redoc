@@ -45,7 +45,7 @@ function initEmpty() {
   builder.field('description');
   builder.ref('ref');
 
-  builder.pipeline.add(lunr.trimmer, lunr.stopWordFilter, lunr.stemmer);
+  builder.pipeline.add(lunr.trimmer, lunr.stopWordFilter);
 
   index = new Promise(resolve => {
     resolveIndex = resolve;
@@ -53,8 +53,6 @@ function initEmpty() {
 }
 
 initEmpty();
-
-const expandTerm = term => '*' + lunr.stemmer(new lunr.Token(term, {})) + '*';
 
 export function add<T>(title: string, description: string, meta?: T) {
   const ref = store.push(meta) - 1;
@@ -110,8 +108,7 @@ export async function search<Meta = string>(
       .split(/\s+/)
       .forEach(term => {
         if (term.length === 1) return;
-        const exp = expandTerm(term);
-        t.term(exp, {});
+        t.term(term, { wildcard: lunr.Query.wildcard.LEADING | lunr.Query.wildcard.TRAILING });
       });
   });
 
